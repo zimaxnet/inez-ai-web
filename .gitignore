@@ -163,6 +163,19 @@ yarn-error.log*
 function-logs.zip
 inez-ai-deploy.zip
 build.zip
+app.zip
 
 # Azure Functions build output
 inez-ai-api/dist/
+
+# GitHub Actions
+.github/
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+Thumbs.db
