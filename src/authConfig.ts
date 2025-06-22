@@ -1,8 +1,15 @@
 // Custom Authentication Configuration
 // This application uses a custom authentication system with Azure Functions backend
 
+const isProduction = process.env.NODE_ENV === 'production';
+
+// In production, when hosted on Static Web Apps, the API is available at the relative path /api
+// In development, we use the full Azure Function URL, which requires CORS to be configured.
+const prodApiBaseUrl = '/api';
+const devApiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'https://inez-ai-function.azurewebsites.net/api';
+
 // API Base URL for the Azure Functions backend
-export const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://inez-ai-function.azurewebsites.net/api';
+export const API_BASE_URL = isProduction ? prodApiBaseUrl : devApiBaseUrl;
 
 // Authentication endpoints
 export const AUTH_ENDPOINTS = {
