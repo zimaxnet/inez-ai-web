@@ -1,6 +1,5 @@
 // Custom Authentication Configuration
 // This application uses a custom authentication system with Azure Functions backend
-// instead of MSAL (Microsoft Authentication Library)
 
 // API Base URL for the Azure Functions backend
 export const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://inez-ai-function.azurewebsites.net/api';
