@@ -1,24 +1,23 @@
-import { Configuration, PopupRequest } from "@azure/msal-browser";
+// Custom Authentication Configuration
+// This application uses a custom authentication system with Azure Functions backend
+// instead of MSAL (Microsoft Authentication Library)
 
-// MSAL configuration
-export const msalConfig: Configuration = {
-  auth: {
-    clientId: "45b038f1-1166-415a-8388-6bda5baa851c", // Inez AI Web App
-    authority: "https://login.microsoftonline.com/96e7dd96-48b5-4991-a67e-1563013dfbe2", // zimaxai.onmicrosoft.com tenant
-    redirectUri: window.location.origin,
-  },
-  cache: {
-    cacheLocation: "sessionStorage", // This configures where your cache will be stored
-    storeAuthStateInCookie: false, // Set this to "true" if you are having issues on IE11 or Edge
-  }
+// API Base URL for the Azure Functions backend
+export const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://inez-ai-function.azurewebsites.net/api';
+
+// Authentication endpoints
+export const AUTH_ENDPOINTS = {
+  register: `${API_BASE_URL}/register`,
+  login: `${API_BASE_URL}/login`,
+  verify: `${API_BASE_URL}/verify`,
+  resendCode: `${API_BASE_URL}/resend-code`
 };
 
-// Add scopes here for ID token to be used at Microsoft identity platform endpoints.
-export const loginRequest: PopupRequest = {
-  scopes: ["User.Read"]
-};
-
-// Add the endpoints here for Microsoft Graph API services you'd like to use.
-export const graphConfig = {
-  graphMeEndpoint: "https://graph.microsoft.com/v1.0/me"
+// Cookie configuration
+export const AUTH_COOKIE_NAME = 'isAuthenticated';
+export const AUTH_COOKIE_OPTIONS = {
+  path: '/',
+  secure: process.env.NODE_ENV === 'production',
+  sameSite: 'strict' as const,
+  maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
 }; 

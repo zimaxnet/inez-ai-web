@@ -14,8 +14,10 @@
   },
   "cors": {
     "allowedOrigins": [
-      "https://inez-ai.azurewebsites.net",
-      "http://localhost:3000"
+      "http://inez-ai-web.azurewebsites.net",
+      "https://inez-ai-web.azurewebsites.net",
+      "http://localhost:3000",
+      "https://localhost:3000"
     ],
     "allowedMethods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     "allowedHeaders": ["Content-Type", "Authorization"],
