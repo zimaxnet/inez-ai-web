@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
+import { AUTH_ENDPOINTS } from '../authConfig';
 
 interface RegisterProps {
   onSwitchToLogin: () => void;
+  onLoginSuccess: (userData: any, token: string) => void;
 }
 
-const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
+const Register: React.FC<RegisterProps> = ({ onSwitchToLogin, onLoginSuccess }) => {
   const [step, setStep] = useState<'register' | 'verify'>('register');
   const [formData, setFormData] = useState({
     email: '',
@@ -16,6 +18,7 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
   const [verificationCode, setVerificationCode] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -29,6 +32,7 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
     e.preventDefault();
     setLoading(true);
     setError('');
+    setSuccess('');
 
     // Basic validation
     if (formData.password !== formData.confirmPassword) {
@@ -44,8 +48,7 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
     }
 
     try {
-      // TODO: Replace with actual API call
-      const response = await fetch('https://inez-ai-function.azurewebsites.net/api/register', {
+      const response = await fetch(AUTH_ENDPOINTS.register, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -61,8 +64,7 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
       if (response.ok) {
         const data = await response.json();
         if (data.verificationCode) {
-          // Development mode - show the code
-          setError(`Verification code: ${data.verificationCode}`);
+          setSuccess(`Verification code: ${data.verificationCode}`);
         }
         setStep('verify');
       } else {
@@ -80,10 +82,10 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
     e.preventDefault();
     setLoading(true);
     setError('');
+    setSuccess('');
 
     try {
-      // TODO: Replace with actual API call
-      const response = await fetch('https://inez-ai-function.azurewebsites.net/api/verify', {
+      const response = await fetch(AUTH_ENDPOINTS.verify, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -96,7 +98,10 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
 
       if (response.ok) {
         // Registration successful, switch to login
-        onSwitchToLogin();
+        setSuccess('Account created successfully! You can now sign in.');
+        setTimeout(() => {
+          onSwitchToLogin();
+        }, 2000);
       } else {
         const data = await response.json();
         setError(data.message || 'Verification failed');
@@ -111,10 +116,10 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
   const handleResendCode = async () => {
     setLoading(true);
     setError('');
+    setSuccess('');
 
     try {
-      // TODO: Replace with actual API call
-      const response = await fetch('https://inez-ai-function.azurewebsites.net/api/resend-code', {
+      const response = await fetch(AUTH_ENDPOINTS.resendCode, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -125,7 +130,7 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
       });
 
       if (response.ok) {
-        setError('Verification code resent successfully!');
+        setSuccess('Verification code resent successfully!');
       } else {
         const data = await response.json();
         setError(data.message || 'Failed to resend code');
@@ -139,213 +144,196 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
 
   if (step === 'verify') {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
-        <div className="max-w-md w-full space-y-8">
-          <div>
-            <div className="mx-auto h-12 w-12 flex items-center justify-center rounded-full bg-indigo-100">
-              <svg className="h-8 w-8 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-              </svg>
-            </div>
-            <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-              Verify your email
-            </h2>
-            <p className="mt-2 text-center text-sm text-gray-600">
-              We've sent a 6-digit code to {formData.email}
-            </p>
+      <div className="bg-white rounded-lg shadow-lg p-8">
+        <div className="text-center mb-8">
+          <div className="mx-auto h-12 w-12 flex items-center justify-center rounded-full bg-indigo-100 mb-4">
+            <svg className="h-8 w-8 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+            </svg>
           </div>
-          
-          <form className="mt-8 space-y-6" onSubmit={handleVerify}>
-            <div>
-              <label htmlFor="verificationCode" className="sr-only">
-                Verification Code
-              </label>
-              <input
-                id="verificationCode"
-                name="verificationCode"
-                type="text"
-                required
-                className="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                placeholder="Enter 6-digit code"
-                value={verificationCode}
-                onChange={(e) => setVerificationCode(e.target.value)}
-                maxLength={6}
-              />
-            </div>
-
-            {error && (
-              <div className="text-red-600 text-sm text-center">
-                {error}
-              </div>
-            )}
-
-            <div>
-              <button
-                type="submit"
-                disabled={loading}
-                className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
-              >
-                {loading ? 'Verifying...' : 'Verify Email'}
-              </button>
-            </div>
-
-            <div className="text-center">
-              <button
-                type="button"
-                onClick={handleResendCode}
-                disabled={loading}
-                className="text-indigo-600 hover:text-indigo-500 text-sm disabled:opacity-50"
-              >
-                Resend code
-              </button>
-            </div>
-
-            <div className="text-center">
-              <button
-                type="button"
-                onClick={() => setStep('register')}
-                className="text-gray-600 hover:text-gray-500 text-sm"
-              >
-                Back to registration
-              </button>
-            </div>
-          </form>
+          <h2 className="text-3xl font-bold text-gray-900 mb-2">
+            Verify your email
+          </h2>
+          <p className="text-gray-600">
+            We've sent a 6-digit code to {formData.email}
+          </p>
         </div>
+        
+        <form onSubmit={handleVerify} className="space-y-6">
+          {error && (
+            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md text-sm">
+              {error}
+            </div>
+          )}
+          
+          {success && (
+            <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-md text-sm">
+              {success}
+            </div>
+          )}
+
+          <div>
+            <label htmlFor="verificationCode" className="block text-sm font-medium text-gray-700 mb-2">
+              Verification Code
+            </label>
+            <input
+              id="verificationCode"
+              name="verificationCode"
+              type="text"
+              required
+              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+              placeholder="Enter 6-digit code"
+              value={verificationCode}
+              onChange={(e) => setVerificationCode(e.target.value)}
+              maxLength={6}
+            />
+          </div>
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
+          >
+            {loading ? 'Verifying...' : 'Verify Email'}
+          </button>
+
+          <div className="text-center">
+            <button
+              type="button"
+              onClick={handleResendCode}
+              disabled={loading}
+              className="text-indigo-600 hover:text-indigo-500 text-sm font-medium disabled:opacity-50"
+            >
+              Resend code
+            </button>
+          </div>
+        </form>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
-      <div className="max-w-md w-full space-y-8">
-        <div>
-          <div className="mx-auto h-12 w-12 flex items-center justify-center rounded-full bg-indigo-100">
-            <svg className="h-8 w-8 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
-            </svg>
+    <div className="bg-white rounded-lg shadow-lg p-8">
+      <div className="text-center mb-8">
+        <div className="mx-auto h-12 w-12 flex items-center justify-center rounded-full bg-indigo-100 mb-4">
+          <svg className="h-8 w-8 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+          </svg>
+        </div>
+        <h2 className="text-3xl font-bold text-gray-900 mb-2">
+          Create Account
+        </h2>
+        <p className="text-gray-600">
+          Join us today
+        </p>
+      </div>
+      
+      <form onSubmit={handleRegister} className="space-y-6">
+        {error && (
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md text-sm">
+            {error}
           </div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            Create your account
-          </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
-            Join Inez AI today
-          </p>
+        )}
+        
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-2">
+              First Name
+            </label>
+            <input
+              id="firstName"
+              name="firstName"
+              type="text"
+              required
+              value={formData.firstName}
+              onChange={handleInputChange}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+              placeholder="First name"
+            />
+          </div>
+          <div>
+            <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 mb-2">
+              Last Name
+            </label>
+            <input
+              id="lastName"
+              name="lastName"
+              type="text"
+              required
+              value={formData.lastName}
+              onChange={handleInputChange}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+              placeholder="Last name"
+            />
+          </div>
+        </div>
+
+        <div>
+          <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+            Email address
+          </label>
+          <input
+            id="email"
+            name="email"
+            type="email"
+            required
+            value={formData.email}
+            onChange={handleInputChange}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+            placeholder="Enter your email"
+          />
         </div>
         
-        <form className="mt-8 space-y-6" onSubmit={handleRegister}>
-          <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label htmlFor="firstName" className="sr-only">
-                  First Name
-                </label>
-                <input
-                  id="firstName"
-                  name="firstName"
-                  type="text"
-                  required
-                  className="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                  placeholder="First Name"
-                  value={formData.firstName}
-                  onChange={handleInputChange}
-                />
-              </div>
-              <div>
-                <label htmlFor="lastName" className="sr-only">
-                  Last Name
-                </label>
-                <input
-                  id="lastName"
-                  name="lastName"
-                  type="text"
-                  required
-                  className="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                  placeholder="Last Name"
-                  value={formData.lastName}
-                  onChange={handleInputChange}
-                />
-              </div>
-            </div>
-            
-            <div>
-              <label htmlFor="email" className="sr-only">
-                Email address
-              </label>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                autoComplete="email"
-                required
-                className="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                placeholder="Email address"
-                value={formData.email}
-                onChange={handleInputChange}
-              />
-            </div>
-            
-            <div>
-              <label htmlFor="password" className="sr-only">
-                Password
-              </label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                autoComplete="new-password"
-                required
-                className="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                placeholder="Password"
-                value={formData.password}
-                onChange={handleInputChange}
-              />
-            </div>
-            
-            <div>
-              <label htmlFor="confirmPassword" className="sr-only">
-                Confirm Password
-              </label>
-              <input
-                id="confirmPassword"
-                name="confirmPassword"
-                type="password"
-                autoComplete="new-password"
-                required
-                className="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                placeholder="Confirm Password"
-                value={formData.confirmPassword}
-                onChange={handleInputChange}
-              />
-            </div>
-          </div>
+        <div>
+          <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+            Password
+          </label>
+          <input
+            id="password"
+            name="password"
+            type="password"
+            required
+            value={formData.password}
+            onChange={handleInputChange}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+            placeholder="Create a password"
+          />
+        </div>
 
-          {error && (
-            <div className="text-red-600 text-sm text-center">
-              {error}
-            </div>
-          )}
+        <div>
+          <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-2">
+            Confirm Password
+          </label>
+          <input
+            id="confirmPassword"
+            name="confirmPassword"
+            type="password"
+            required
+            value={formData.confirmPassword}
+            onChange={handleInputChange}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+            placeholder="Confirm your password"
+          />
+        </div>
 
-          <div>
-            <button
-              type="submit"
-              disabled={loading}
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
-            >
-              {loading ? 'Creating Account...' : 'Create Account'}
-            </button>
-          </div>
-
-          <div className="text-center">
-            <button
-              type="button"
-              onClick={onSwitchToLogin}
-              className="text-indigo-600 hover:text-indigo-500 text-sm"
-            >
-              Already have an account? Sign in
-            </button>
-          </div>
-        </form>
-      </div>
+        <button
+          type="submit"
+          disabled={loading}
+          className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
+        >
+          {loading ? 'Creating account...' : 'Create account'}
+        </button>
+        
+        <div className="text-center">
+          <button
+            type="button"
+            onClick={onSwitchToLogin}
+            className="text-indigo-600 hover:text-indigo-500 text-sm font-medium"
+          >
+            Already have an account? Sign in
+          </button>
+        </div>
+      </form>
     </div>
   );
 };
