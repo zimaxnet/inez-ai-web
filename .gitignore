@@ -168,9 +168,6 @@ app.zip
 # Azure Functions build output
 inez-ai-api/dist/
 
-# GitHub Actions
-.github/
-
 # IDE files
 .vscode/
 .idea/
