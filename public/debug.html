@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug - Clear Authentication</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        button {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+        }
+        button:hover {
+            background-color: #c82333;
+        }
+        .info {
+            background-color: #e7f3ff;
+            border: 1px solid #b3d9ff;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Debug Tools</h1>
+        
+        <div class="info">
+            <strong>Current Authentication Status:</strong>
+            <div id="authStatus">Checking...</div>
+        </div>
+
+        <h3>Authentication Actions:</h3>
+        
+        <button onclick="clearAuth()">🚪 Clear Authentication & Go to Login</button>
+        <button onclick="setAuth()">✅ Set Authentication (Go to Dashboard)</button>
+        <button onclick="checkCookies()">🔍 Check All Cookies</button>
+        
+        <div id="result" style="margin-top: 20px; padding: 10px; background-color: #f8f9fa; border-radius: 4px;"></div>
+    </div>
+
+    <script>
+        function checkAuthStatus() {
+            const authCookie = getCookie('isAuthenticated');
+            const status = authCookie === 'true' ? '✅ Authenticated' : '❌ Not Authenticated';
+            document.getElementById('authStatus').innerHTML = status + ' (Cookie: ' + (authCookie || 'none') + ')';
+        }
+
+        function getCookie(name) {
+            const nameEQ = name + "=";
+            const ca = document.cookie.split(';');
+            for (let i = 0; i < ca.length; i++) {
+                let c = ca[i];
+                while (c.charAt(0) === ' ') c = c.substring(1, c.length);
+                if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length, c.length);
+            }
+            return null;
+        }
+
+        function clearAuth() {
+            document.cookie = "isAuthenticated=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/;";
+            document.getElementById('result').innerHTML = '✅ Authentication cleared! Redirecting to login...';
+            setTimeout(() => {
+                window.location.href = '/';
+            }, 1000);
+        }
+
+        function setAuth() {
+            document.cookie = "isAuthenticated=true;path=/;max-age=604800"; // 7 days
+            document.getElementById('result').innerHTML = '✅ Authentication set! Redirecting to dashboard...';
+            setTimeout(() => {
+                window.location.href = '/';
+            }, 1000);
+        }
+
+        function checkCookies() {
+            const cookies = document.cookie;
+            document.getElementById('result').innerHTML = '<strong>All Cookies:</strong><br>' + (cookies || 'No cookies found');
+        }
+
+        // Check status on page load
+        checkAuthStatus();
+    </script>
+</body>
+</html> 
