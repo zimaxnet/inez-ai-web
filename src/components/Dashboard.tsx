@@ -1,10 +1,47 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { AUTH_COOKIE_NAME } from '../authConfig';
 
 interface DashboardProps {
   onLogout: () => void;
 }
 
 const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
+  const [showDebug, setShowDebug] = useState<boolean>(false);
+  const [debugMessage, setDebugMessage] = useState<string>('');
+
+  const handleForceLogout = () => {
+    // Clear authentication cookie directly
+    document.cookie = `${AUTH_COOKIE_NAME}=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/;`;
+    // Clear any stored tokens
+    localStorage.removeItem('authToken');
+    // Force page reload to clear any cached state
+    window.location.reload();
+  };
+
+  const clearAllCookies = () => {
+    const cookies = document.cookie.split(';');
+    cookies.forEach(cookie => {
+      const eqPos = cookie.indexOf('=');
+      const name = eqPos > -1 ? cookie.substr(0, eqPos) : cookie;
+      document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/;`;
+    });
+    setDebugMessage('All cookies cleared!');
+    setTimeout(() => setDebugMessage(''), 3000);
+  };
+
+  const checkAuthCookie = () => {
+    const authCookie = document.cookie.split(';').find(c => c.trim().startsWith(`${AUTH_COOKIE_NAME}=`));
+    const status = authCookie ? 'Present' : 'Not found';
+    setDebugMessage(`Auth cookie status: ${status}`);
+    setTimeout(() => setDebugMessage(''), 3000);
+  };
+
+  const setAuthCookie = () => {
+    document.cookie = `${AUTH_COOKIE_NAME}=true;path=/;max-age=604800`; // 7 days
+    setDebugMessage('Auth cookie set to true!');
+    setTimeout(() => setDebugMessage(''), 3000);
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <nav className="bg-white shadow-sm">
@@ -26,6 +63,18 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
               >
                 Sign Out
               </button>
+              <button
+                onClick={handleForceLogout}
+                className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200"
+              >
+                Force Logout
+              </button>
+              <button
+                onClick={() => setShowDebug(!showDebug)}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200"
+              >
+                Debug
+              </button>
             </div>
           </div>
         </div>
@@ -33,6 +82,50 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
 
       <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         <div className="px-4 py-6 sm:px-0">
+          {debugMessage && (
+            <div className="mb-4 bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-md text-sm">
+              {debugMessage}
+            </div>
+          )}
+
+          {showDebug && (
+            <div className="mb-6 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+              <h3 className="text-lg font-medium text-yellow-800 mb-4">Debug Tools</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <button
+                  onClick={checkAuthCookie}
+                  className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium"
+                >
+                  Check Auth Cookie
+                </button>
+                <button
+                  onClick={setAuthCookie}
+                  className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-md text-sm font-medium"
+                >
+                  Set Auth Cookie
+                </button>
+                <button
+                  onClick={clearAllCookies}
+                  className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md text-sm font-medium"
+                >
+                  Clear All Cookies
+                </button>
+                <button
+                  onClick={() => window.location.reload()}
+                  className="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-md text-sm font-medium"
+                >
+                  Reload Page
+                </button>
+              </div>
+              <div className="mt-4 text-sm text-yellow-700">
+                <p><strong>Current cookies:</strong></p>
+                <pre className="mt-2 bg-white p-2 rounded border text-xs overflow-x-auto">
+                  {document.cookie || 'No cookies found'}
+                </pre>
+              </div>
+            </div>
+          )}
+
           <div className="bg-white overflow-hidden shadow rounded-lg">
             <div className="px-4 py-5 sm:p-6">
               <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">
@@ -89,6 +182,27 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
                       <p>
                         The application is successfully connected to the Azure Functions backend.
                         All authentication features are working properly.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-6 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                <div className="flex">
+                  <div className="flex-shrink-0">
+                    <svg className="h-5 w-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                  <div className="ml-3">
+                    <h3 className="text-sm font-medium text-yellow-800">
+                      Stuck on Dashboard?
+                    </h3>
+                    <div className="mt-2 text-sm text-yellow-700">
+                      <p>
+                        If you're unable to logout normally, use the "Force Logout" button in the navigation bar above.
+                        You can also click the "Debug" button to access debugging tools for managing cookies and authentication state.
                       </p>
                     </div>
                   </div>
