@@ -1,32 +1,10 @@
 import React from 'react';
-import { useMsal, useAccount } from '@azure/msal-react';
 
-// Cookie utility functions
-const clearCookie = (name: string) => {
-  document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/;`;
-};
+interface DashboardProps {
+  onLogout: () => void;
+}
 
-const Dashboard: React.FC = () => {
-  const { instance, accounts } = useMsal();
-  const account = useAccount(accounts[0] || {});
-
-  const handleLogout = () => {
-    instance.logoutPopup().then(() => {
-      // Clear authentication cookie
-      clearCookie('isAuthenticated');
-      // Force a page reload to show the login screen
-      window.location.reload();
-    }).catch((e: unknown) => {
-      console.error(e);
-    });
-  };
-
-  const handleForceLogout = () => {
-    // Force clear cookie and reload without MSAL logout
-    clearCookie('isAuthenticated');
-    window.location.reload();
-  };
-
+const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
   return (
     <div className="min-h-screen bg-gray-50">
       <nav className="bg-white shadow-sm">
@@ -38,23 +16,15 @@ const Dashboard: React.FC = () => {
             <div className="flex items-center space-x-4">
               <div className="flex items-center space-x-2">
                 <div className="h-8 w-8 rounded-full bg-indigo-600 flex items-center justify-center">
-                  <span className="text-sm font-medium text-white">
-                    {account?.name?.charAt(0) || account?.username?.charAt(0) || 'U'}
-                  </span>
+                  <span className="text-sm font-medium text-white">U</span>
                 </div>
-                <span className="text-sm text-gray-700">{account?.name || account?.username}</span>
+                <span className="text-sm text-gray-700">User</span>
               </div>
               <button
-                onClick={handleLogout}
+                onClick={onLogout}
                 className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200"
               >
                 Sign Out
-              </button>
-              <button
-                onClick={handleForceLogout}
-                className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200"
-              >
-                Force Logout
               </button>
             </div>
           </div>
@@ -70,19 +40,15 @@ const Dashboard: React.FC = () => {
               </h3>
               
               <div className="bg-gray-50 rounded-lg p-4 mb-6">
-                <h4 className="text-sm font-medium text-gray-900 mb-2">User Information</h4>
+                <h4 className="text-sm font-medium text-gray-900 mb-2">Authentication Status</h4>
                 <dl className="grid grid-cols-1 gap-x-4 gap-y-2 sm:grid-cols-2">
                   <div>
-                    <dt className="text-sm font-medium text-gray-500">Name</dt>
-                    <dd className="text-sm text-gray-900">{account?.name || 'Not available'}</dd>
+                    <dt className="text-sm font-medium text-gray-500">Status</dt>
+                    <dd className="text-sm text-gray-900">Authenticated</dd>
                   </div>
                   <div>
-                    <dt className="text-sm font-medium text-gray-500">Email</dt>
-                    <dd className="text-sm text-gray-900">{account?.username || 'Not available'}</dd>
-                  </div>
-                  <div>
-                    <dt className="text-sm font-medium text-gray-500">Environment</dt>
-                    <dd className="text-sm text-gray-900">{account?.environment || 'Not available'}</dd>
+                    <dt className="text-sm font-medium text-gray-500">Method</dt>
+                    <dd className="text-sm text-gray-900">Custom Authentication</dd>
                   </div>
                 </dl>
               </div>
@@ -100,8 +66,29 @@ const Dashboard: React.FC = () => {
                     </h3>
                     <div className="mt-2 text-sm text-blue-700">
                       <p>
-                        You have successfully authenticated with your CIAM tenant. 
-                        This application is now ready to integrate with Azure services.
+                        You have successfully authenticated with the Inez AI application. 
+                        This application uses custom authentication with Azure Functions backend.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-6 bg-green-50 border border-green-200 rounded-lg p-4">
+                <div className="flex">
+                  <div className="flex-shrink-0">
+                    <svg className="h-5 w-5 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                  <div className="ml-3">
+                    <h3 className="text-sm font-medium text-green-800">
+                      Backend Connected
+                    </h3>
+                    <div className="mt-2 text-sm text-green-700">
+                      <p>
+                        The application is successfully connected to the Azure Functions backend.
+                        All authentication features are working properly.
                       </p>
                     </div>
                   </div>

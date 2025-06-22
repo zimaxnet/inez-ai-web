@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import { useMsal } from '@azure/msal-react';
-import { loginRequest } from '../authConfig';
+import { AUTH_ENDPOINTS } from '../authConfig';
 
 interface LoginProps {
   onSwitchToRegister: () => void;
@@ -8,7 +7,6 @@ interface LoginProps {
 }
 
 const Login: React.FC<LoginProps> = ({ onSwitchToRegister, onLoginSuccess }) => {
-  const { instance } = useMsal();
   const [formData, setFormData] = useState({
     email: '',
     password: ''
@@ -29,7 +27,7 @@ const Login: React.FC<LoginProps> = ({ onSwitchToRegister, onLoginSuccess }) => 
     setError('');
 
     try {
-      const response = await fetch('https://inez-ai-function.azurewebsites.net/api/login', {
+      const response = await fetch(AUTH_ENDPOINTS.login, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -55,12 +53,6 @@ const Login: React.FC<LoginProps> = ({ onSwitchToRegister, onLoginSuccess }) => 
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const handleMicrosoftLogin = () => {
-    instance.loginPopup(loginRequest).catch((e: any) => {
-      console.error(e);
-    });
   };
 
   return (
@@ -139,32 +131,6 @@ const Login: React.FC<LoginProps> = ({ onSwitchToRegister, onLoginSuccess }) => 
                 </span>
               )}
               {isLoading ? 'Signing in...' : 'Sign in'}
-            </button>
-          </div>
-          
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-gray-300" />
-            </div>
-            <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-gradient-to-br from-blue-50 to-indigo-100 text-gray-500">Or</span>
-            </div>
-          </div>
-          
-          <div>
-            <button
-              type="button"
-              onClick={handleMicrosoftLogin}
-              className="group relative w-full flex justify-center py-3 px-4 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200"
-            >
-              <svg className="h-5 w-5 mr-2" viewBox="0 0 23 23" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M0 0h23v23H0z" fill="#F3F3F3"/>
-                <path d="M1 1h10v10H1z" fill="#F35325"/>
-                <path d="M12 1h10v10H12z" fill="#81BC06"/>
-                <path d="M1 12h10v10H1z" fill="#05A6F0"/>
-                <path d="M12 12h10v10H12z" fill="#FFBA08"/>
-              </svg>
-              Sign in with Microsoft
             </button>
           </div>
           

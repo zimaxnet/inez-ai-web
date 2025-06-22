@@ -1,13 +1,8 @@
 import React, { useState } from 'react';
-import { MsalProvider } from '@azure/msal-react';
-import { PublicClientApplication } from '@azure/msal-browser';
-import { msalConfig } from './authConfig';
 import Login from './components/Login';
 import Register from './components/Register';
 import Dashboard from './components/Dashboard';
-
-// Initialize MSAL
-const msalInstance = new PublicClientApplication(msalConfig);
+import { AUTH_COOKIE_NAME } from './authConfig';
 
 // Cookie utility functions
 const setCookie = (name: string, value: string, days: number = 7) => {
@@ -27,6 +22,10 @@ const getCookie = (name: string): string | null => {
   return null;
 };
 
+const clearCookie = (name: string) => {
+  document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/;`;
+};
+
 function App() {
   const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -42,31 +41,36 @@ function App() {
   const handleLoginSuccess = () => {
     setIsAuthenticated(true);
     // Set authentication cookie
-    setCookie('isAuthenticated', 'true', 7); // 7 days
+    setCookie(AUTH_COOKIE_NAME, 'true', 7); // 7 days
+  };
+
+  const handleLogout = () => {
+    setIsAuthenticated(false);
+    clearCookie(AUTH_COOKIE_NAME);
+    // Force page reload to clear any cached state
+    window.location.reload();
   };
 
   // Check if user is authenticated on component mount
   React.useEffect(() => {
-    const authCookie = getCookie('isAuthenticated');
+    const authCookie = getCookie(AUTH_COOKIE_NAME);
     if (authCookie === 'true') {
       setIsAuthenticated(true);
     }
   }, []);
 
   return (
-    <MsalProvider instance={msalInstance}>
-      <div className="App">
-        {isAuthenticated ? (
-          <Dashboard />
+    <div className="App">
+      {isAuthenticated ? (
+        <Dashboard onLogout={handleLogout} />
+      ) : (
+        authMode === 'login' ? (
+          <Login onSwitchToRegister={handleSwitchToRegister} onLoginSuccess={handleLoginSuccess} />
         ) : (
-          authMode === 'login' ? (
-            <Login onSwitchToRegister={handleSwitchToRegister} onLoginSuccess={handleLoginSuccess} />
-          ) : (
-            <Register onSwitchToLogin={handleSwitchToLogin} />
-          )
-        )}
-      </div>
-    </MsalProvider>
+          <Register onSwitchToLogin={handleSwitchToLogin} />
+        )
+      )}
+    </div>
   );
 }
 
